@@ -1,4 +1,4 @@
-namespace: fond-of-spryker/checkout-delivery-date-rest-api
+namespace: fond-of-spryker/splittable-checkout-rest-api
 
 suites:
   unit:
