@@ -1,5 +1,5 @@
 {
-  "name": "fond-of-spryker/checkout-delivery-date-rest-api",
+  "name": "fond-of-spryker/splittable-checkout-rest-api",
   "description": "CheckoutDeliveryDateRestApi Module",
   "license": "MIT",
   "authors": [
