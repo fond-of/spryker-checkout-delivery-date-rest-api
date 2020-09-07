@@ -1,0 +1,36 @@
+{
+  "name": "fond-of-spryker/checkout-delivery-date-rest-api",
+  "description": "CheckoutDeliveryDateRestApi Module",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "József Geng",
+      "email": "gengjozsef86@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "spryker/checkout-rest-api": "^1.0.0"
+  },
+  "require-dev": {
+    "spryker/code-sniffer": "^0.12",
+    "codeception/codeception": "^2.4",
+    "fond-of-codeception/spryker": "dev-master as 1.0.0",
+    "phpro/grumphp": "^0.14",
+    "sebastian/phpcpd": "^4.0",
+    "php-coveralls/php-coveralls": "^2.1"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "autoload": {
+    "psr-4": {
+      "FondOfSpryker\\": "src/FondOfSpryker/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "FondOfSpryker\\": "tests/FondOfSpryker/",
+      "Generated\\": "src/Generated/"
+    }
+  }
+}
