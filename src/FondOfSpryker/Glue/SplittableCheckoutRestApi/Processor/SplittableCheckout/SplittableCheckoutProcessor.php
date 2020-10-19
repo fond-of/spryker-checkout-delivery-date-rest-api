@@ -62,9 +62,9 @@ class SplittableCheckoutProcessor implements SplittableCheckoutProcessorInterfac
         $restSplittableCheckoutRequestAttributesTransfer = $this->splittableCheckoutRequestAttributesExpander
             ->expandSplittableCheckoutRequestAttributes($restRequest, $restSplittableCheckoutRequestAttributesTransfer);
 
-        $restCheckoutResponseTransfer = $this->splittableCheckoutRestApiClient
+        $restSplittableCheckoutResponseTransfer = $this->splittableCheckoutRestApiClient
             ->placeOrder($restSplittableCheckoutRequestAttributesTransfer);
-        if (!$restCheckoutResponseTransfer->getIsSuccess()) {
+        if (!$restSplittableCheckoutResponseTransfer->getIsSuccess()) {
             return $this->createPlaceOrderFailedErrorResponse(
                 $restCheckoutMultipleResponseTransfer->getErrors(),
                 $restRequest->getMetadata()->getLocale()
