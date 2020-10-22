@@ -17,23 +17,10 @@
         <property name="shipment" type="RestShipment" restRequestParameter="yes"/>
     </transfer>
 
-    <transfer name="RestSplittableCheckoutResponseAttributes">
-    </transfer>
-
     <transfer name="RestSplittableCheckoutResponse">
         <property name="isSuccess" type="bool" />
         <property name="errors" type="RestCheckoutError[]" singular="error" />
-        <property name="saveOrder" type="SaveOrder"/>
-    </transfer>
-
-    <transfer name="SplittableCheckoutResponse">
-        <property name="isSuccess" type="bool" />
-        <property name="errors" type="SplittableCheckoutError[]" singular="error" />
-    </transfer>
-
-    <transfer name="SplittableCheckoutError">
-        <property name="errorCode" type="int" />
-        <property name="message" type="string" />
+        <property name="orderReferences" type="array" singular="orderReference" />
     </transfer>
 
     <transfer name="RestSplittableCheckoutData">
@@ -55,6 +42,10 @@
         <property name="detail" type="string"/>
         <property name="parameters" type="array"/>
         <property name="errorIdentifier" type="string"/>
+    </transfer>
+
+    <transfer name="RestSplittableCheckoutResponseAttributes">
+        <property name="orderReferences" type="array" singular="orderReference" />
     </transfer>
 
 </transfers>

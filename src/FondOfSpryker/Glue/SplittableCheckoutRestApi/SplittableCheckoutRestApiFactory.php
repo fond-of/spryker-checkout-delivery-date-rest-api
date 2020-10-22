@@ -37,7 +37,8 @@ class SplittableCheckoutRestApiFactory extends AbstractFactory
         return new SplittableCheckoutProcessor(
             $this->getClient(),
             $this->createCheckoutRequestValidator(),
-            $this->createSplittableCheckoutRequestAttributesExpander()
+            $this->createSplittableCheckoutRequestAttributesExpander(),
+            $this->getResourceBuilder()
         );
     }
 

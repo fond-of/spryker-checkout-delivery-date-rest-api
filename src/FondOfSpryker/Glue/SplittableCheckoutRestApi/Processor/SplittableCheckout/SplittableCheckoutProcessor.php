@@ -7,8 +7,13 @@ use FondOfSpryker\Glue\SplittableCheckoutRestApi\Dependency\Client\SplittableChe
 use FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\RequestAttributesExpander\SplittableCheckoutRequestAttributesExpanderInterface;
 use FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\Validator\CheckoutRequestValidatorInterface;
 use FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\Validator\SplittableCheckoutRequestValidatorInterface;
+use FondOfSpryker\Glue\SplittableCheckoutRestApi\SplittableCheckoutRestApiConfig;
 use Generated\Shared\Transfer\RestCheckoutRequestAttributesTransfer;
+use Generated\Shared\Transfer\RestCheckoutResponseAttributesTransfer;
 use Generated\Shared\Transfer\RestSplittableCheckoutRequestAttributesTransfer;
+use Generated\Shared\Transfer\RestSplittableCheckoutResponseTransfer;
+use Generated\Shared\Transfer\SplittableCheckoutResponseTransfer;
+use Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceBuilderInterface;
 use Spryker\Glue\GlueApplication\Rest\JsonApi\RestResponseInterface;
 use Spryker\Glue\GlueApplication\Rest\Request\Data\RestRequestInterface;
 use Spryker\Glue\Kernel\PermissionAwareTrait;
@@ -16,6 +21,11 @@ use Spryker\Glue\Kernel\PermissionAwareTrait;
 class SplittableCheckoutProcessor implements SplittableCheckoutProcessorInterface
 {
     use PermissionAwareTrait;
+
+    /**
+     * @var \Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceBuilderInterface
+     */
+    protected $restResourceBuilder;
 
     /**
      * @var \FondOfSpryker\Client\SplittableCheckoutRestApi\SplittableCheckoutRestApiClientInterface
@@ -32,14 +42,24 @@ class SplittableCheckoutProcessor implements SplittableCheckoutProcessorInterfac
      */
     protected $splittableCheckoutRequestValidator;
 
+    /**
+     * SplittableCheckoutProcessor constructor.
+     *
+     * @param \FondOfSpryker\Client\SplittableCheckoutRestApi\SplittableCheckoutRestApiClientInterface $splittableCheckoutRestApiClient
+     * @param \FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\Validator\SplittableCheckoutRequestValidatorInterface $splittableCheckoutRequestValidator
+     * @param \FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\RequestAttributesExpander\SplittableCheckoutRequestAttributesExpanderInterface $splittableCheckoutRequestAttributesExpander
+     * @param \Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceBuilderInterface $restResourceBuilder
+     */
     public function __construct(
         SplittableCheckoutRestApiClientInterface $splittableCheckoutRestApiClient,
         SplittableCheckoutRequestValidatorInterface $splittableCheckoutRequestValidator,
-        SplittableCheckoutRequestAttributesExpanderInterface $splittableCheckoutRequestAttributesExpander
+        SplittableCheckoutRequestAttributesExpanderInterface $splittableCheckoutRequestAttributesExpander,
+        RestResourceBuilderInterface $restResourceBuilder
     ) {
         $this->splittableCheckoutRequestAttributesExpander = $splittableCheckoutRequestAttributesExpander;
         $this->splittableCheckoutRequestValidator = $splittableCheckoutRequestValidator;
         $this->splittableCheckoutRestApiClient = $splittableCheckoutRestApiClient;
+        $this->restResourceBuilder = $restResourceBuilder;
     }
 
     /**
@@ -71,7 +91,7 @@ class SplittableCheckoutProcessor implements SplittableCheckoutProcessorInterfac
             );
         }
 
-        return $this->createOrderPlacedMultipleResponse($restCheckoutMultipleResponseTransfer->getOrderReferences());
+        return $this->createPlacedOrderResponse($restSplittableCheckoutResponseTransfer);
     }
 
     /**
@@ -128,19 +148,22 @@ class SplittableCheckoutProcessor implements SplittableCheckoutProcessorInterfac
     }
 
     /**
-     * @param string[] $orderReferences
+     * @param \Generated\Shared\Transfer\RestSplittableCheckoutResponseTransfer $restSplittableCheckoutResponseTransfer
      *
      * @return \Spryker\Glue\GlueApplication\Rest\JsonApi\RestResponseInterface
      */
-    protected function createOrderPlacedMultipleResponse(array $orderReferences): RestResponseInterface
-    {
-        $restCheckoutMultipleResponseAttributesTransfer = new RestCheckoutMultipleResponseAttributesTransfer();
-        $restCheckoutMultipleResponseAttributesTransfer->setOrderReferences($orderReferences);
+    protected function createPlacedOrderResponse(
+        RestSplittableCheckoutResponseTransfer $restSplittableCheckoutResponseTransfer
+    ): RestResponseInterface {
+
+        $restSplittableCheckoutResponseAttributesTransfer = new RestCheckoutResponseAttributesTransfer();
+        $restSplittableCheckoutResponseAttributesTransfer
+            ->setOrderReference($restSplittableCheckoutResponseTransfer->getOrderReferences());
 
         $restResource = $this->restResourceBuilder->createRestResource(
-            CheckoutRestApiConfig::RESOURCE_CHECKOUT,
+            SplittableCheckoutRestApiConfig::RESOURCE_SPLITTABLE_CHECKOUT,
             null,
-            $restCheckoutMultipleResponseAttributesTransfer
+            $restSplittableCheckoutResponseAttributesTransfer
         );
 
         return $this->restResourceBuilder

@@ -12,6 +12,7 @@ use FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableChec
 use FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToSplittableCheckoutFacadeInterface;
 use Generated\Shared\Transfer\CheckoutDataTransfer;
 use Generated\Shared\Transfer\CheckoutResponseTransfer;
+use Generated\Shared\Transfer\QuoteCollectionTransfer;
 use Generated\Shared\Transfer\QuoteResponseTransfer;
 use Generated\Shared\Transfer\QuoteTransfer;
 use Generated\Shared\Transfer\RestCheckoutErrorTransfer;
@@ -117,19 +118,11 @@ class PlaceOrderProcessor implements PlaceOrderProcessorInterface
         $quoteTransfer = $this->recalculateQuote($quoteTransfer);
 
         $splittableCheckoutResponseTransfer = $this->executePlaceOrder($quoteTransfer);
-        if (!$splittableCheckoutResponseTransfer->getIsSuccess()) {
+        if ($splittableCheckoutResponseTransfer->getIsSuccess() === false) {
             return $this->createPlaceOrderErrorResponse($splittableCheckoutResponseTransfer);
         }
 
-        $quoteResponseTransfer = $this->deleteQuote($quoteTransfer);
-        if (!$quoteResponseTransfer->getIsSuccessful()) {
-            return $this->createQuoteResponseError(
-                $quoteResponseTransfer,
-                CheckoutRestApiConfig::ERROR_IDENTIFIER_UNABLE_TO_DELETE_CART
-            );
-        }
-
-        return $this->createRestCheckoutResponseTransfer($splittableCheckoutResponseTransfer);
+        return $this->createRestSplittableCheckoutResponseTransfer($splittableCheckoutResponseTransfer);
     }
 
     /**
@@ -241,16 +234,6 @@ class PlaceOrderProcessor implements PlaceOrderProcessorInterface
     }
 
     /**
-     * @param \Generated\Shared\Transfer\QuoteTransfer $quoteTransfer
-     *
-     * @return \Generated\Shared\Transfer\QuoteResponseTransfer
-     */
-    protected function deleteQuote(QuoteTransfer $quoteTransfer): QuoteResponseTransfer
-    {
-        return $this->quoteFacade->deleteQuote($quoteTransfer);
-    }
-
-    /**
      * @param \Generated\Shared\Transfer\QuoteResponseTransfer $quoteResponseTransfer
      * @param string $errorIdentifier
      *
@@ -349,9 +332,7 @@ class PlaceOrderProcessor implements PlaceOrderProcessorInterface
     ): RestSplittableCheckoutResponseTransfer {
         return (new RestSplittableCheckoutResponseTransfer())
             ->setIsSuccess(true)
-            ->setRedirectUrl($splittableCheckoutResponseTransfer->getRedirectUrl())
-            ->setIsExternalRedirect($splittableCheckoutResponseTransfer->getIsExternalRedirect())
-            ->setOrderReference($splittableCheckoutResponseTransfer->getSaveOrder()->getOrderReference())
-            ->setCheckoutResponse($splittableCheckoutResponseTransfer);
+            ->setOrderReferences($splittableCheckoutResponseTransfer->getOrderReferences());
     }
+
 }
