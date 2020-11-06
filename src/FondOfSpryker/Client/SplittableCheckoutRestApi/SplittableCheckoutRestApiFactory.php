@@ -19,10 +19,8 @@ class SplittableCheckoutRestApiFactory extends AbstractFactory
 
     /**
      * @return \FondOfSpryker\Client\SplittableCheckoutRestApi\Dependency\Client\SplittableCheckoutRestApiToZedRequestClientInterface
-     *
-     * @throws \Spryker\Client\Kernel\Exception\Container\ContainerKeyNotFoundException
      */
-    public function getZedRequestClient(): SplittableCheckoutRestApiToZedRequestClientInterface
+    protected function getZedRequestClient(): SplittableCheckoutRestApiToZedRequestClientInterface
     {
         return $this->getProvidedDependency(SplittableCheckoutRestApiDependencyProvider::CLIENT_ZED_REQUEST);
     }
