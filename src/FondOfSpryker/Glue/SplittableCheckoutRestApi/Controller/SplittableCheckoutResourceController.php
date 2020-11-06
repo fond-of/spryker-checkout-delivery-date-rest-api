@@ -2,7 +2,6 @@
 
 namespace FondOfSpryker\Glue\SplittableCheckoutRestApi\Controller;
 
-use Generated\Shared\Transfer\RestCheckoutRequestAttributesTransfer;
 use Generated\Shared\Transfer\RestSplittableCheckoutRequestAttributesTransfer;
 use Spryker\Glue\GlueApplication\Rest\JsonApi\RestResponseInterface;
 use Spryker\Glue\GlueApplication\Rest\Request\Data\RestRequestInterface;

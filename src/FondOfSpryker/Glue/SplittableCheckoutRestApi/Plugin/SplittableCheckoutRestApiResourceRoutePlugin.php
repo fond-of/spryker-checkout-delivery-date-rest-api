@@ -2,19 +2,12 @@
 
 namespace FondOfSpryker\Glue\SplittableCheckoutRestApi\Plugin;
 
-use FondOfSpryker\Glue\CompanyUserCartsRestApi\CompanyUserCartsRestApiConfig;
-use FondOfSpryker\Glue\CompanyUsersRestApi\CompanyUsersRestApiConfig;
 use FondOfSpryker\Glue\SplittableCheckoutRestApi\SplittableCheckoutRestApiConfig;
-use Generated\Shared\Transfer\RestCartsRequestAttributesTransfer;
 use Generated\Shared\Transfer\RestSplittableCheckoutRequestAttributesTransfer;
 use Spryker\Glue\GlueApplicationExtension\Dependency\Plugin\ResourceRouteCollectionInterface;
 use Spryker\Glue\GlueApplicationExtension\Dependency\Plugin\ResourceRoutePluginInterface;
-use Spryker\Glue\GlueApplicationExtension\Dependency\Plugin\ResourceWithParentPluginInterface;
 use Spryker\Glue\Kernel\AbstractPlugin;
 
-/**
- * @method \FondOfSpryker\Glue\SplittableCheckoutRestApi\SplittableCheckoutRestApiFactory getFactory()
- */
 class SplittableCheckoutRestApiResourceRoutePlugin extends AbstractPlugin implements ResourceRoutePluginInterface
 {
     /**

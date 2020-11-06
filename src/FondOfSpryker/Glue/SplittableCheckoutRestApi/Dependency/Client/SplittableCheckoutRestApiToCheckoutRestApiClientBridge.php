@@ -2,9 +2,8 @@
 
 namespace FondOfSpryker\Glue\SplittableCheckoutRestApi\Dependency\Client;
 
-use FondOfSpryker\Glue\SplittableCheckoutRestApi\Dependency\Client\SplittableCheckoutRestApiToCheckoutRestApiClientInterface;
 use Generated\Shared\Transfer\RestCheckoutRequestAttributesTransfer;
-use Generated\Shared\Transfer\RestSplittableCheckoutRequestAttributesTransfer;
+use Generated\Shared\Transfer\RestCheckoutResponseTransfer;
 use Spryker\Client\CheckoutRestApi\CheckoutRestApiClientInterface;
 
 class SplittableCheckoutRestApiToCheckoutRestApiClientBridge implements SplittableCheckoutRestApiToCheckoutRestApiClientInterface
@@ -15,8 +14,6 @@ class SplittableCheckoutRestApiToCheckoutRestApiClientBridge implements Splittab
     protected $checkoutRestApiClient;
 
     /**
-     * SplittableCheckoutRestApiToCheckoutRestApiClientBridge constructor.
-     *
      * @param \Spryker\Client\CheckoutRestApi\CheckoutRestApiClientInterface $checkoutRestApiClient
      */
     public function __construct(
@@ -31,8 +28,7 @@ class SplittableCheckoutRestApiToCheckoutRestApiClientBridge implements Splittab
      * @api
      *
      * @param \Generated\Shared\Transfer\RestCheckoutRequestAttributesTransfer $restCheckoutRequestAttributesTransfer
-     *
-     * @return \FondOfSpryker\Glue\SplittableCheckoutRestApi\Dependency\Client\RestCheckoutResponseTransfer
+     * @return \Generated\Shared\Transfer\RestCheckoutResponseTransfer
      */
     public function placeOrder(
         RestCheckoutRequestAttributesTransfer $restCheckoutRequestAttributesTransfer

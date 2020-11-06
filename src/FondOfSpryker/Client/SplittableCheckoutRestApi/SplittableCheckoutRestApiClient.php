@@ -23,6 +23,8 @@ class SplittableCheckoutRestApiClient extends AbstractClient implements Splittab
     public function placeOrder(
         RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer
     ): RestSplittableCheckoutResponseTransfer {
-        return $this->getFactory()->createSplittableCheckoutRestApiZedStub()->placeOrder($restSplittableCheckoutRequestAttributesTransfer);
+        return $this->getFactory()
+            ->createSplittableCheckoutRestApiZedStub()
+            ->placeOrder($restSplittableCheckoutRequestAttributesTransfer);
     }
 }

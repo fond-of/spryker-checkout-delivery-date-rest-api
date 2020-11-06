@@ -3,11 +3,10 @@
 namespace FondOfSpryker\Glue\SplittableCheckoutRestApi\Dependency\Client;
 
 use Generated\Shared\Transfer\RestCheckoutRequestAttributesTransfer;
-use Generated\Shared\Transfer\RestSplittableCheckoutRequestAttributesTransfer;
+use Generated\Shared\Transfer\RestCheckoutResponseTransfer;
 
 interface SplittableCheckoutRestApiToCheckoutRestApiClientInterface
 {
-
     /**
      * Specification:
      * - Looks up the customer quote by uuid.
