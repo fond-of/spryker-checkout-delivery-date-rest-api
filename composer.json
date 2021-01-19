@@ -11,7 +11,7 @@
   "require": {
     "php": ">=7.1",
     "fond-of-spryker/company-user-reference": "dev-master",
-    "spryker/checkout-rest-api": "^1.0.0"
+    "spryker/checkout-rest-api": "^3.0.0"
   },
   "require-dev": {
     "spryker/code-sniffer": "^0.12",
