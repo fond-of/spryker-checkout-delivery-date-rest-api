@@ -13,8 +13,6 @@ use Spryker\Glue\Kernel\PermissionAwareTrait;
 
 class SplittableCheckoutProcessor implements SplittableCheckoutProcessorInterface
 {
-    use PermissionAwareTrait;
-
     /**
      * @var \FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\RestResponseBuilder\SplittableCheckoutRestResponseBuilderInterface
      */
@@ -63,9 +61,9 @@ class SplittableCheckoutProcessor implements SplittableCheckoutProcessorInterfac
         RestRequestInterface $restRequest,
         RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer
     ): RestResponseInterface {
-
         $restErrorCollectionTransfer = $this->splittableCheckoutRequestValidator
             ->validateSplittableCheckoutRequest($restRequest, $restSplittableCheckoutRequestAttributesTransfer);
+
         if ($restErrorCollectionTransfer->getRestErrors()->count()) {
             return $this->createValidationErrorResponse($restErrorCollectionTransfer);
         }
@@ -75,11 +73,13 @@ class SplittableCheckoutProcessor implements SplittableCheckoutProcessorInterfac
 
         $restSplittableCheckoutResponseTransfer = $this->splittableCheckoutRestApiClient
             ->placeOrder($restSplittableCheckoutRequestAttributesTransfer);
+
         if ($restSplittableCheckoutResponseTransfer->getIsSuccess() === false) {
-            /*return $this->createPlaceOrderFailedErrorResponse(
-                $restCheckoutMultipleResponseTransfer->getErrors(),
-                $restRequest->getMetadata()->getLocale()
-            );*/
+            return $this->splittableCheckoutRestResponseBuilder
+                ->createPlaceOrderFailedErrorResponse(
+                    $restSplittableCheckoutResponseTransfer->getErrors(),
+                    $restRequest->getMetadata()->getLocale()
+                );
         }
 
         return $this->splittableCheckoutRestResponseBuilder

@@ -2,6 +2,9 @@
 
 namespace FondOfSpryker\Glue\SplittableCheckoutRestApi;
 
+use FondOfSpryker\Glue\SplittableCheckoutRestApi\Dependency\Client\SplittableCheckoutRestApiToGlossaryStorageClientInterface;
+use FondOfSpryker\Glue\SplittableCheckoutRestApi\Mapper\RestSplittableCheckoutErrorMapper;
+use FondOfSpryker\Glue\SplittableCheckoutRestApi\Mapper\RestSplittableCheckoutErrorMapperInterface;
 use FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\Customer\CustomerMapper;
 use FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\Customer\CustomerMapperInterface;
 use FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\RequestAttributesExpander\SplittableCheckoutRequestAttributesExpander;
@@ -39,7 +42,8 @@ class SplittableCheckoutRestApiFactory extends AbstractFactory
     public function createCheckoutRequestValidator(): SplittableCheckoutRequestValidatorInterface
     {
         return new SplittableCheckoutRequestValidator(
-            $this->getCheckoutRequestAttributesValidatorPlugins()
+            $this->getSplittableCheckoutRequestValidatorPlugins(),
+            $this->getSplittableCheckoutRequestAttributesValidatorPlugins()
         );
     }
 
@@ -50,7 +54,8 @@ class SplittableCheckoutRestApiFactory extends AbstractFactory
     {
         return new SplittableCheckoutRequestAttributesExpander(
             $this->createCustomerMapper(),
-            $this->getConfig()
+            $this->getConfig(),
+            $this->getSplittableCheckoutRequestExpanderPlugins()
         );
     }
 
@@ -60,7 +65,8 @@ class SplittableCheckoutRestApiFactory extends AbstractFactory
     protected function createSplittableCheckoutRestResponseBuilder(): SplittableCheckoutRestResponseBuilderInterface
     {
         return new SplittableCheckoutRestResponseBuilder(
-            $this->getResourceBuilder()
+            $this->getResourceBuilder(),
+            $this->createRestSplittableCheckoutErrorMapper()
         );
     }
 
@@ -72,11 +78,43 @@ class SplittableCheckoutRestApiFactory extends AbstractFactory
         return new CustomerMapper();
     }
 
-    /**
-     * @return \Spryker\Glue\CheckoutRestApiExtension\Dependency\Plugin\CheckoutRequestAttributesValidatorPluginInterface[]
-     */
-    public function getCheckoutRequestAttributesValidatorPlugins(): array
+    public function createRestSplittableCheckoutErrorMapper(): RestSplittableCheckoutErrorMapperInterface
     {
-        return $this->getProvidedDependency(SplittableCheckoutRestApiDependencyProvider::PLUGINS_CHECKOUT_REQUEST_ATTRIBUTES_VALIDATOR);
+        return new RestSplittableCheckoutErrorMapper(
+            $this->getConfig(),
+            $this->getGlossaryStorageClient()
+        );
+    }
+
+    /**
+     * @return \FondOfSpryker\Glue\SplittableCheckoutRestApiExtension\Dependency\Plugin\SplttableCheckoutRequestValidatorPluginInterface[]
+     */
+    public function getSplittableCheckoutRequestValidatorPlugins(): array
+    {
+        return $this->getProvidedDependency(SplittableCheckoutRestApiDependencyProvider::PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_VALIDATOR);
+    }
+
+    /**
+     * @return \FondOfSpryker\Glue\SplittableCheckoutRestApiExtension\Dependency\Plugin\SplttableCheckoutRequestAttributesValidatorPluginInterface[]
+     */
+    public function getSplittableCheckoutRequestAttributesValidatorPlugins(): array
+    {
+        return $this->getProvidedDependency(SplittableCheckoutRestApiDependencyProvider::PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_ATTRIBUTES_VALIDATOR);
+    }
+
+    /**
+     * @return \FondOfSpryker\Glue\SplittableCheckoutRestApiExtension\Dependency\Plugin\SplittableCheckoutRequestExpanderPluginInterface[]
+     */
+    public function getSplittableCheckoutRequestExpanderPlugins(): array
+    {
+        return $this->getProvidedDependency(SplittableCheckoutRestApiDependencyProvider::PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_EXPANDER);
+    }
+
+    /**
+     * @return \Spryker\Glue\CheckoutRestApi\Dependency\Client\CheckoutRestApiToGlossaryStorageClientInterface
+     */
+    public function getGlossaryStorageClient(): SplittableCheckoutRestApiToGlossaryStorageClientInterface
+    {
+        return $this->getProvidedDependency(SplittableCheckoutRestApiDependencyProvider::CLIENT_GLOSSARY_STORAGE);
     }
 }

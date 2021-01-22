@@ -8,6 +8,8 @@ use FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\SplittableCheckout\Plac
 use FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\SplittableCheckout\PlaceOrderProcessorInterface;
 use FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\SplittableCheckout\Quote\QuoteReader;
 use FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\SplittableCheckout\Quote\QuoteReaderInterface;
+use FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\Validator\SplittableCheckoutValidator;
+use FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\Validator\SplittableCheckoutValidatorInterface;
 use FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCalculationFacadeInterface;
 use FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCartFacadeInterface;
 use FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCartsRestApiFacadeInterface;
@@ -30,12 +32,22 @@ class SplittableCheckoutRestApiBusinessFactory extends AbstractBusinessFactory
     public function createPlaceOrderProcessor(): PlaceOrderProcessorInterface
     {
         return new PlaceOrderProcessor(
-            $this->createQuoteReader(),
-            $this->getCartFacade(),
             $this->getSplittableCheckoutFacade(),
-            $this->getQuoteFacade(),
             $this->getCalculationFacade(),
-            $this->getQuoteMapperPlugins(),
+            $this->createSplittableCheckoutValidator(),
+            $this->getQuoteMapperPlugins()
+        );
+    }
+
+    /**
+     * @return \FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\Validator\SplittableCheckoutValidatorInterface
+     *
+     * @throws \Spryker\Zed\Kernel\Exception\Container\ContainerKeyNotFoundException
+     */
+    public function createSplittableCheckoutValidator(): SplittableCheckoutValidatorInterface
+    {
+        return new SplittableCheckoutValidator(
+            $this->createQuoteReader(),
             $this->getSplittableCheckoutDataValidatorPlugins()
         );
     }

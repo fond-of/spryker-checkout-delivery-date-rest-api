@@ -16,4 +16,17 @@ interface SplittableCheckoutRestResponseBuilderInterface
     public function createSplittableCheckoutRestResponse(
         RestSplittableCheckoutResponseTransfer $restSplittableCheckoutResponseTransfer
     ): RestResponseInterface;
+
+    /**
+     * @param \FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\RestResponseBuilder|\ArrayObject $errors
+     * @param string $locale
+     *
+     * @return \Spryker\Glue\GlueApplication\Rest\JsonApi\RestResponseInterface
+     */
+    public function createPlaceOrderFailedErrorResponse(
+        ArrayObject $errors,
+        string $locale
+    ): RestResponseInterface;
+
+
 }

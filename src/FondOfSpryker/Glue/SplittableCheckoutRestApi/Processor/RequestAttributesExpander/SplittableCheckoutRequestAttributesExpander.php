@@ -21,15 +21,22 @@ class SplittableCheckoutRequestAttributesExpander implements SplittableCheckoutR
     protected $customerMapper;
 
     /**
+     * @var \Spryker\Glue\CheckoutRestApiExtension\Dependency\Plugin\CheckoutRequestExpanderPluginInterface[]
+     */
+    protected $checkoutRequestExpanderPlugins;
+
+    /**
      * SplittableCheckoutRequestAttributesExpander constructor.
      * @param \FondOfSpryker\Glue\SplittableCheckoutRestApi\SplittableCheckoutRestApiConfig $config
      */
     public function __construct(
         CustomerMapper $customerMapper,
-        SplittableCheckoutRestApiConfig $config
+        SplittableCheckoutRestApiConfig $config,
+        array $checkoutRequestExpanderPlugins
     ) {
         $this->customerMapper = $customerMapper;
         $this->config = $config;
+        $this->checkoutRequestExpanderPlugins = $checkoutRequestExpanderPlugins;
     }
 
     /**
@@ -42,13 +49,16 @@ class SplittableCheckoutRequestAttributesExpander implements SplittableCheckoutR
         RestRequestInterface $restRequest,
         RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer
     ): RestSplittableCheckoutRequestAttributesTransfer {
-
         $restSplittableCheckoutRequestAttributesTransfer =
             $this->expandCustomerData($restRequest, $restSplittableCheckoutRequestAttributesTransfer);
+
         $restSplittableCheckoutRequestAttributesTransfer =
             $this->expandPaymentSelection($restSplittableCheckoutRequestAttributesTransfer);
 
-        return $restSplittableCheckoutRequestAttributesTransfer;
+        return $this->executeSplittableCheckoutRequestExpanderPlugins(
+            $restRequest,
+            $restSplittableCheckoutRequestAttributesTransfer
+        );
     }
 
     /**
@@ -75,7 +85,8 @@ class SplittableCheckoutRequestAttributesExpander implements SplittableCheckoutR
      */
     protected function expandPaymentSelection(
         RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer
-    ): RestSplittableCheckoutRequestAttributesTransfer {
+    ): RestSplittableCheckoutRequestAttributesTransfer
+    {
         $payments = $restSplittableCheckoutRequestAttributesTransfer->getPayments();
         $paymentProviderMethodToStateMachineMapping = $this->config->getPaymentProviderMethodToStateMachineMapping();
 
@@ -83,6 +94,26 @@ class SplittableCheckoutRequestAttributesExpander implements SplittableCheckoutR
             if (isset($paymentProviderMethodToStateMachineMapping[$payment->getPaymentProviderName()][$payment->getPaymentMethodName()])) {
                 $payment->setPaymentSelection($paymentProviderMethodToStateMachineMapping[$payment->getPaymentProviderName()][$payment->getPaymentMethodName()]);
             }
+        }
+
+        return $restSplittableCheckoutRequestAttributesTransfer;
+    }
+
+    /**
+     * @param \Spryker\Glue\GlueApplication\Rest\Request\Data\RestRequestInterface $restRequest
+     * @param \Generated\Shared\Transfer\RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer
+     *
+     * @return \Generated\Shared\Transfer\RestSplittableCheckoutRequestAttributesTransfer
+     */
+    protected function executeSplittableCheckoutRequestExpanderPlugins(
+        RestRequestInterface $restRequest,
+        RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer
+    ): RestSplittableCheckoutRequestAttributesTransfer {
+        foreach ($this->checkoutRequestExpanderPlugins as $checkoutRequestExpanderPlugin) {
+            $restSplittableCheckoutRequestAttributesTransfer = $checkoutRequestExpanderPlugin->expand(
+                $restRequest,
+                $restSplittableCheckoutRequestAttributesTransfer
+            );
         }
 
         return $restSplittableCheckoutRequestAttributesTransfer;

@@ -2,7 +2,9 @@
 
 namespace FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\RestResponseBuilder;
 
+use FondOfSpryker\Glue\SplittableCheckoutRestApi\Mapper\RestSplittableCheckoutErrorMapperInterface;
 use FondOfSpryker\Glue\SplittableCheckoutRestApi\SplittableCheckoutRestApiConfig;
+use Generated\Shared\Transfer\RestErrorMessageTransfer;
 use Generated\Shared\Transfer\RestSplittableCheckoutResponseTransfer;
 use Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceBuilderInterface;
 use Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceInterface;
@@ -16,12 +18,19 @@ class SplittableCheckoutRestResponseBuilder implements SplittableCheckoutRestRes
     protected $restResourceBuilder;
 
     /**
+     * @var \FondOfSpryker\Glue\SplittableCheckoutRestApi\Mapper\RestSplittableCheckoutErrorMapperInterface
+     */
+    protected $restSplittableCheckoutErrorMapper;
+
+    /**
      * @param \Spryker\Glue\GlueApplication\Rest\JsonApi\RestResourceBuilderInterface $restResourceBuilder
      */
     public function __construct(
-        RestResourceBuilderInterface $restResourceBuilder
+        RestResourceBuilderInterface $restResourceBuilder,
+        RestSplittableCheckoutErrorMapperInterface $restSplittableCheckoutErrorMapper
     ) {
         $this->restResourceBuilder = $restResourceBuilder;
+        $this->restSplittableCheckoutErrorMapper = $restSplittableCheckoutErrorMapper;
     }
 
     /**
@@ -54,5 +63,31 @@ class SplittableCheckoutRestResponseBuilder implements SplittableCheckoutRestRes
             null,
             $restSplittableCheckoutResponseTransfer
         );
+    }
+
+    /**
+     * @param \FondOfSpryker\Glue\SplittableCheckoutRestApi\Processor\RestResponseBuilder\ArrayObject $errors
+     * @param string $locale
+     *
+     * @return \Spryker\Glue\GlueApplication\Rest\JsonApi\RestResponseInterface
+     */
+    public function createPlaceOrderFailedErrorResponse(
+        ArrayObject $errors,
+        string $locale
+    ): RestResponseInterface {
+        $restResponse = $this->restResourceBuilder->createRestResponse();
+
+        foreach ($errors as $error) {
+            $restResponse->addError(
+                $this->restSplittableCheckoutErrorMapper
+                    ->mapLocalizedRestSplittableCheckoutErrorTransferToRestErrorTransfer(
+                        $error,
+                        new RestErrorMessageTransfer(),
+                        $locale
+                    )
+            );
+        }
+
+        return $restResponse;
     }
 }

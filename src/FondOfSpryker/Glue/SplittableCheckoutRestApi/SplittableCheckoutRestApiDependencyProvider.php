@@ -3,6 +3,7 @@
 namespace FondOfSpryker\Glue\SplittableCheckoutRestApi;
 
 use FondOfSpryker\Glue\SplittableCheckoutRestApi\Dependency\Client\SplittableCheckoutRestApiToCheckoutRestApiClientBridge;
+use FondOfSpryker\Glue\SplittableCheckoutRestApi\Dependency\Client\SplittableCheckoutRestApiToGlossaryStorageClientBridge;
 use Spryker\Glue\Kernel\AbstractBundleDependencyProvider;
 use Spryker\Glue\Kernel\Container;
 
@@ -12,7 +13,11 @@ use Spryker\Glue\Kernel\Container;
 class SplittableCheckoutRestApiDependencyProvider extends AbstractBundleDependencyProvider
 {
     public const CLIENT_CHECKOUT_REST_API = 'CLIENT_CHECKOUT_REST_API';
-    public const PLUGINS_CHECKOUT_REQUEST_ATTRIBUTES_VALIDATOR = 'PLUGINS_CHECKOUT_REQUEST_ATTRIBUTES_VALIDATOR';
+    public const CLIENT_GLOSSARY_STORAGE = 'CLIENT_GLOSSARY_STORAGE';
+    public const PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_VALIDATOR = 'PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_VALIDATOR';
+    public const PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_ATTRIBUTES_VALIDATOR = 'PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_ATTRIBUTES_VALIDATOR';
+    public const PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_EXPANDER = 'PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_EXPANDER';
+
 
     /**
      * @param \Spryker\Glue\Kernel\Container $container
@@ -24,7 +29,10 @@ class SplittableCheckoutRestApiDependencyProvider extends AbstractBundleDependen
         $container = parent::provideDependencies($container);
 
         $container = $this->addCheckoutRestApiClient($container);
-        $container = $this->addCheckoutRequestAttributesValidatorPlugins($container);
+        $container = $this->addGlossaryStorageClient($container);
+        $container = $this->addSplittableCheckoutRequestValidatorPlugins($container);
+        $container = $this->addSplittableCheckoutRequestAttributesValidatorPlugins($container);
+        $container = $this->addSplittableCheckoutRequestExpanderPlugins($container);
 
         return $container;
     }
@@ -50,19 +58,80 @@ class SplittableCheckoutRestApiDependencyProvider extends AbstractBundleDependen
      *
      * @return \Spryker\Glue\Kernel\Container
      */
-    protected function addCheckoutRequestAttributesValidatorPlugins(Container $container): Container
+    protected function addGlossaryStorageClient(Container $container): Container
     {
-        $container[static::PLUGINS_CHECKOUT_REQUEST_ATTRIBUTES_VALIDATOR] = function () {
-            return $this->getCheckoutRequestAttributesValidatorPlugins();
+        $container->set(static::CLIENT_GLOSSARY_STORAGE, function (Container $container) {
+            return new SplittableCheckoutRestApiToGlossaryStorageClientBridge(
+                $container->getLocator()->glossaryStorage()->client()
+            );
+        });
+
+        return $container;
+    }
+
+    /**
+     * @param \Spryker\Glue\Kernel\Container $container
+     *
+     * @return \Spryker\Glue\Kernel\Container
+     */
+    protected function addSplittableCheckoutRequestAttributesValidatorPlugins(Container $container): Container
+    {
+        $container[static::PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_ATTRIBUTES_VALIDATOR] = function () {
+            return $this->getSplittableCheckoutRequestAttributesValidatorPlugins();
         };
 
         return $container;
     }
 
     /**
-     * @return \Spryker\Glue\CheckoutRestApiExtension\Dependency\Plugin\CheckoutRequestAttributesValidatorPluginInterface[]
+     * @param \Spryker\Glue\Kernel\Container $container
+     *
+     * @return \Spryker\Glue\Kernel\Container
      */
-    protected function getCheckoutRequestAttributesValidatorPlugins(): array
+    protected function addSplittableCheckoutRequestValidatorPlugins(Container $container): Container
+    {
+        $container[static::PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_VALIDATOR] = function () {
+            return $this->getSplittableCheckoutRequestValidatorPlugins();
+        };
+
+        return $container;
+    }
+
+
+    /**
+     * @param \Spryker\Glue\Kernel\Container $container
+     *
+     * @return \Spryker\Glue\Kernel\Container
+     */
+    protected function addSplittableCheckoutRequestExpanderPlugins(Container $container): Container
+    {
+        $container->set(static::PLUGINS_SPLITTABLE_CHECKOUT_REQUEST_EXPANDER, function () {
+            return $this->getSplittableCheckoutRequestExpanderPlugins();
+        });
+
+        return $container;
+    }
+
+    /**
+     * @return \FondOfSpryker\Glue\SplittableCheckoutRestApiExtension\Dependency\Plugin\SplittableCheckoutRequestExpanderPluginInterface[]
+     */
+    protected function getSplittableCheckoutRequestExpanderPlugins(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return \FondOfSpryker\Glue\SplittableCheckoutRestApiExtension\Dependency\Plugin\SplittableCheckoutRequestValidatorPluginInterface[]
+     */
+    protected function getSplittableCheckoutRequestValidatorPlugins(): array
+    {
+        return [];
+    }
+
+    /**
+     * @return \FondOfSpryker\Glue\SplittableCheckoutRestApiExtension\Dependency\Plugin\SplittableCheckoutRequestAttributesValidatorPluginInterface[]
+     */
+    protected function getSplittableCheckoutRequestAttributesValidatorPlugins(): array
     {
         return [];
     }

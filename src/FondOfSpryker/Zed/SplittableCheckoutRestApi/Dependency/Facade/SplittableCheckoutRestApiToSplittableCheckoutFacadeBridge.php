@@ -4,6 +4,7 @@ namespace FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade;
 
 use FondOfSpryker\Zed\SplittableCheckout\Business\SplittableCheckoutFacadeInterface;
 use Generated\Shared\Transfer\QuoteTransfer;
+use Generated\Shared\Transfer\SplittableCheckoutResponseTransfer;
 
 class SplittableCheckoutRestApiToSplittableCheckoutFacadeBridge implements SplittableCheckoutRestApiToSplittableCheckoutFacadeInterface
 {
@@ -25,9 +26,9 @@ class SplittableCheckoutRestApiToSplittableCheckoutFacadeBridge implements Split
     /**
      * @param \Generated\Shared\Transfer\QuoteTransfer $quoteTransfer
      *
-     * @return \Generated\Shared\Transfer\CheckoutResponseTransfer
+     * @return \Generated\Shared\Transfer\SplittableCheckoutResponseTransfer
      */
-    public function placeOrder(QuoteTransfer $quoteTransfer)
+    public function placeOrder(QuoteTransfer $quoteTransfer): SplittableCheckoutResponseTransfer
     {
         return $this->splitttableCheckoutFacade->placeOrder($quoteTransfer);
     }

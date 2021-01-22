@@ -3,7 +3,7 @@
 namespace FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\SplittableCheckout;
 
 use FondOfSpryker\Glue\SplittableCheckoutRestApi\SplittableCheckoutRestApiConfig;
-use FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\SplittableCheckout\Quote\QuoteReaderInterface;
+use FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\Validator\SplittableCheckoutValidatorInterface;
 use FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCalculationFacadeInterface;
 use FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCartFacadeInterface;
 use FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCartsRestApiFacadeInterface;
@@ -27,24 +27,9 @@ use Generated\Shared\Transfer\SplittableCheckoutResponseTransfer;
 class PlaceOrderProcessor implements PlaceOrderProcessorInterface
 {
     /**
-     * @var \FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\SplittableCheckout\Quote\QuoteReaderInterface
-     */
-    protected $quoteReader;
-
-    /**
-     * @var \FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCartsRestApiFacadeInterface
-     */
-    protected $cartFacade;
-
-    /**
      * @var \FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToSplittableCheckoutFacadeInterface
      */
     protected $splittableCheckoutFacade;
-
-    /**
-     * @var \FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToQuoteFacadeInterface
-     */
-    protected $quoteFacade;
 
     /**
      * @var \FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCalculationFacadeInterface
@@ -57,37 +42,28 @@ class PlaceOrderProcessor implements PlaceOrderProcessorInterface
     protected $quoteMapperPlugins;
 
     /**
-     * @var \FondOfSpryker\Zed\SplittableCheckoutRestApiExtension\Dependency\Plugin\SplittableCheckoutDataValidatorPluginInterface[]
+     * @var \FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\Validator\SplittableCheckoutValidatorInterface
      */
-    protected $splittableCheckoutDataValidatorPlugins;
+    protected $splittableCheckoutDataValidator;
 
     /**
      * PlaceOrderProcessor constructor.
      *
-     * @param \FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\SplittableCheckout\Quote\QuoteReaderInterface $quoteReader
-     * @param \FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCartsRestApiFacadeInterface $cartFacade
-     * @param \FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCheckoutFacadeInterface $checkoutFacade
-     * @param \FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToQuoteFacadeInterface $quoteFacade
+     * @param \FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToSplittableCheckoutFacadeInterface $splittableCheckoutFacade
      * @param \FondOfSpryker\Zed\SplittableCheckoutRestApi\Dependency\Facade\SplittableCheckoutRestApiToCalculationFacadeInterface $calculationFacade
-     * @param \FondOfSpryker\Zed\SplittableCheckoutRestApiExtension\Dependency\Plugin\QuoteMapperPluginInterface[] $quoteMapperPlugins
-     * @param \FondOfSpryker\Zed\SplittableCheckoutRestApiExtension\Dependency\Plugin\SplittableCheckoutDataValidatorPluginInterface[] $splittableCheckoutDataValidatorPlugins
+     * @param \FondOfSpryker\Zed\SplittableCheckoutRestApi\Business\Validator\SplittableCheckoutValidatorInterface $splittableCheckoutDataValidator
+     * @param array $quoteMapperPlugins
      */
     public function __construct(
-        QuoteReaderInterface $quoteReader,
-        SplittableCheckoutRestApiToCartFacadeInterface $cartFacade,
         SplittableCheckoutRestApiToSplittableCheckoutFacadeInterface $splittableCheckoutFacade,
-        SplittableCheckoutRestApiToQuoteFacadeInterface $quoteFacade,
         SplittableCheckoutRestApiToCalculationFacadeInterface $calculationFacade,
-        array $quoteMapperPlugins,
-        array $splittableCheckoutDataValidatorPlugins
+        SplittableCheckoutValidatorInterface $splittableCheckoutDataValidator,
+        array $quoteMapperPlugins
     ) {
-        $this->quoteReader = $quoteReader;
-        $this->cartFacade = $cartFacade;
         $this->splittableCheckoutFacade = $splittableCheckoutFacade;
-        $this->quoteFacade = $quoteFacade;
         $this->calculationFacade = $calculationFacade;
         $this->quoteMapperPlugins = $quoteMapperPlugins;
-        $this->splittableCheckoutDataValidatorPlugins = $splittableCheckoutDataValidatorPlugins;
+        $this->splittableCheckoutDataValidator = $splittableCheckoutDataValidator;
     }
 
     /**
@@ -98,26 +74,22 @@ class PlaceOrderProcessor implements PlaceOrderProcessorInterface
     public function placeOrder(
         RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer
     ): RestSplittableCheckoutResponseTransfer {
-        $splittableCheckoutResponseTransfer = $this->validateSplittableCheckoutData($restSplittableCheckoutRequestAttributesTransfer);
-        if (!$splittableCheckoutResponseTransfer->getIsSuccess()) {
-            return $this->createPlaceOrderErrorResponse($splittableCheckoutResponseTransfer);
+        $splittableCheckoutResponseTransfer = $this->splittableCheckoutDataValidator
+            ->validateSplittableCheckout($restSplittableCheckoutRequestAttributesTransfer);
+
+        if ($splittableCheckoutResponseTransfer->getIsSuccess() === false) {
+            return $splittableCheckoutResponseTransfer;
         }
 
-        $quoteTransfer = $this->quoteReader->findCustomerQuoteByUuid($restSplittableCheckoutRequestAttributesTransfer);
-
-        $restCheckoutResponseTransfer = $this->validateQuoteTransfer($quoteTransfer);
-        if ($restCheckoutResponseTransfer !== null) {
-            return $restCheckoutResponseTransfer;
-        }
-
-        $quoteTransfer = $this->mapRestSplittableCheckoutRequestAttributesToQuote(
+        $quoteTransfer = $this->executeQuoteMapperPlugins(
             $restSplittableCheckoutRequestAttributesTransfer,
             $quoteTransfer
         );
 
-        $quoteTransfer = $this->recalculateQuote($quoteTransfer);
+        $quoteTransfer = $this->calculationFacade->recalculateQuote($quoteTransfer);
 
-        $splittableCheckoutResponseTransfer = $this->executePlaceOrder($quoteTransfer);
+        return $this->executePlaceOrder($quoteTransfer);
+
         if ($splittableCheckoutResponseTransfer->getIsSuccess() === false) {
             return $this->createPlaceOrderErrorResponse($splittableCheckoutResponseTransfer);
         }
@@ -126,101 +98,23 @@ class PlaceOrderProcessor implements PlaceOrderProcessorInterface
     }
 
     /**
-     * @param \Generated\Shared\Transfer\QuoteTransfer|null $quoteTransfer
-     *
-     * @return \Generated\Shared\Transfer\RestCheckoutResponseTransfer|null
-     */
-    protected function validateQuoteTransfer(?QuoteTransfer $quoteTransfer): ?RestCheckoutResponseTransfer
-    {
-        if (!$quoteTransfer) {
-            return $this->createCartNotFoundErrorResponse();
-        }
-
-        if (!count($quoteTransfer->getItems())) {
-            return $this->createCartIsEmptyErrorResponse();
-        }
-
-        $quoteResponseTransfer = $this->cartFacade->validateQuote($quoteTransfer);
-
-        if ($quoteResponseTransfer->getIsSuccessful() === false) {
-            return $this->createQuoteResponseError(
-                $quoteResponseTransfer,
-                CheckoutRestApiConfig::ERROR_IDENTIFIER_CHECKOUT_DATA_INVALID
-            );
-        }
-
-        return null;
-    }
-
-    /**
-     * @param \Generated\Shared\Transfer\RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer
-     *
-     * @return \Generated\Shared\Transfer\SplittableCheckoutResponseTransfer
-     */
-    protected function validateSplittableCheckoutData(
-        RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer
-    ): SplittableCheckoutResponseTransfer {
-        $splittableCheckoutResponseTransfer = (new SplittableCheckoutResponseTransfer())->setIsSuccess(true);
-        $splittableCheckoutDataTransfer = (new SplittableCheckoutDataTransfer())
-            ->fromArray($restSplittableCheckoutRequestAttributesTransfer->toArray(), true);
-
-        foreach ($this->splittableCheckoutDataValidatorPlugins as $splittableCheckoutDataValidatorPlugin) {
-            $validatedSplittableCheckoutData = $splittableCheckoutDataValidatorPlugin->validateSplittableCheckoutData($splittableCheckoutDataTransfer);
-            if (!$validatedSplittableCheckoutData->getIsSuccess()) {
-                $splittableCheckoutResponseTransfer = $this->appendSplittableCheckoutResponseErrors(
-                    $validatedSplittableCheckoutData,
-                    $splittableCheckoutResponseTransfer
-                );
-            }
-        }
-
-        return $splittableCheckoutResponseTransfer;
-    }
-
-    /**
-     * @param \Generated\Shared\Transfer\SplittableCheckoutResponseTransfer $validatedSplittableCheckoutData
-     * @param \Generated\Shared\Transfer\SplittableCheckoutResponseTransfer $splittableCheckoutResponseTransfer
-     *
-     * @return \Generated\Shared\Transfer\SplittableCheckoutResponseTransfer
-     */
-    protected function appendSplittableCheckoutResponseErrors(
-        SplittableCheckoutResponseTransfer $validatedSplittableCheckoutData,
-        SplittableCheckoutResponseTransfer $splittableCheckoutResponseTransfer
-    ): SplittableCheckoutResponseTransfer {
-        foreach ($validatedSplittableCheckoutData->getErrors() as $splittableCheckoutErrorTransfer) {
-            $splittableCheckoutResponseTransfer->getErrors()->append($splittableCheckoutErrorTransfer);
-        }
-
-        return $splittableCheckoutResponseTransfer->setIsSuccess(false);
-    }
-
-    /**
      * @param \Generated\Shared\Transfer\RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer
      * @param \Generated\Shared\Transfer\QuoteTransfer $quoteTransfer
      *
      * @return \Generated\Shared\Transfer\QuoteTransfer
      */
-    protected function mapRestSplittableCheckoutRequestAttributesToQuote(
+    protected function executeQuoteMapperPlugins(
         RestSplittableCheckoutRequestAttributesTransfer $restSplittableCheckoutRequestAttributesTransfer,
         QuoteTransfer $quoteTransfer
     ): QuoteTransfer {
         foreach ($this->quoteMapperPlugins as $quoteMapperPlugin) {
-            $restCheckoutRequestAttributesTransfer =
-                (new RestCheckoutRequestAttributesTransfer())->fromArray($restSplittableCheckoutRequestAttributesTransfer->toArray());
-            $quoteTransfer = $quoteMapperPlugin->map($restCheckoutRequestAttributesTransfer, $quoteTransfer);
+            $quoteTransfer = $quoteMapperPlugin->map(
+                $restSplittableCheckoutRequestAttributesTransfer,
+                $quoteTransfer
+            );
         }
 
         return $quoteTransfer;
-    }
-
-    /**
-     * @param \Generated\Shared\Transfer\QuoteTransfer $quoteTransfer
-     *
-     * @return \Generated\Shared\Transfer\QuoteTransfer
-     */
-    protected function recalculateQuote(QuoteTransfer $quoteTransfer): QuoteTransfer
-    {
-        return $this->calculationFacade->recalculateQuote($quoteTransfer);
     }
 
     /**
@@ -230,66 +124,15 @@ class PlaceOrderProcessor implements PlaceOrderProcessorInterface
      */
     protected function executePlaceOrder(QuoteTransfer $quoteTransfer): SplittableCheckoutResponseTransfer
     {
-        return $this->splittableCheckoutFacade->placeOrder($quoteTransfer);
-    }
+        $splittableCheckoutResponseTransfer = $this->splittableCheckoutFacade->placeOrder($quoteTransfer);
 
-    /**
-     * @param \Generated\Shared\Transfer\QuoteResponseTransfer $quoteResponseTransfer
-     * @param string $errorIdentifier
-     *
-     * @return \Generated\Shared\Transfer\RestSplittableCheckoutResponseTransfer
-     */
-    protected function createQuoteResponseError(
-        QuoteResponseTransfer $quoteResponseTransfer,
-        string $errorIdentifier
-    ): RestSplittableCheckoutResponseTransfer {
-        if ($quoteResponseTransfer->getErrors()->count() === 0) {
-            return (new RestCheckoutResponseTransfer())
-                ->setIsSuccess(false)
-                ->addError(
-                    (new RestSplittableCheckoutErrorTransfer())
-                        ->setErrorIdentifier($errorIdentifier)
-                );
+        if ($splittableCheckoutResponseTransfer->getIsSuccess() === false) {
+            return $this->createPlaceOrderErrorResponse($splittableCheckoutResponseTransfer);
         }
 
-        $restSplittableCheckoutResponseTransfer = (new RestSplittableCheckoutResponseTransfer())
-            ->setIsSuccess(false);
-        foreach ($quoteResponseTransfer->getErrors() as $quoteErrorTransfer) {
-            $restSplittableCheckoutResponseTransfer->addError(
-                (new RestSplittableCheckoutErrorTransfer())
-                    ->setErrorIdentifier($errorIdentifier)
-                    ->setDetail($quoteErrorTransfer->getMessage())
-            );
-        }
-
-        return $restSplittableCheckoutResponseTransfer;
+        return $this->createRestSplittableCheckoutResponseTransfer($splittableCheckoutResponseTransfer);
     }
 
-    /**
-     * @return \Generated\Shared\Transfer\RestSplittableCheckoutResponseTransfer
-     */
-    protected function createCartNotFoundErrorResponse(): RestSplittableCheckoutResponseTransfer
-    {
-        return (new RestSplittableCheckoutResponseTransfer())
-            ->setIsSuccess(false)
-            ->addError(
-                (new RestSplittableCheckoutErrorTransfer())
-                    ->setErrorIdentifier(SplittableCheckoutRestApiConfig::ERROR_IDENTIFIER_CART_NOT_FOUND)
-            );
-    }
-
-    /**
-     * @return \Generated\Shared\Transfer\RestSplittableCheckoutResponseTransfer
-     */
-    protected function createCartIsEmptyErrorResponse(): RestSplittableCheckoutResponseTransfer
-    {
-        return (new RestSplittableCheckoutResponseTransfer())
-            ->setIsSuccess(false)
-            ->addError(
-                (new RestSplittableCheckoutErrorTransfer())
-                    ->setErrorIdentifier(SplittableCheckoutRestApiConfig::ERROR_IDENTIFIER_CART_IS_EMPTY)
-            );
-    }
 
     /**
      * @param \Generated\Shared\Transfer\SplittableCheckoutResponseTransfer $splittableCheckoutResponseTransfer
@@ -300,16 +143,18 @@ class PlaceOrderProcessor implements PlaceOrderProcessorInterface
         SplittableCheckoutResponseTransfer $splittableCheckoutResponseTransfer
     ): RestSplittableCheckoutResponseTransfer
     {
+        $restSplittableCheckoutResponseTransfer = (new RestSplittableCheckoutResponseTransfer())
+            ->setIsSuccess(false);
+
         if ($splittableCheckoutResponseTransfer->getErrors()->count() === 0) {
-            return (new RestSplittableCheckoutResponseTransfer())
-                ->setIsSuccess(false)
+            return $restSplittableCheckoutResponseTransfer
                 ->addError(
                     (new RestSplittableCheckoutErrorTransfer())
                         ->setErrorIdentifier(SplittableCheckoutRestApiConfig::ERROR_IDENTIFIER_ORDER_NOT_PLACED)
                 );
         }
-        $restSplittableCheckoutResponseTransfer = (new RestSplittableCheckoutResponseTransfer())
-            ->setIsSuccess(false);
+
+
         foreach ($splittableCheckoutResponseTransfer->getErrors() as $errorTransfer) {
             $restSplittableCheckoutResponseTransfer->addError(
                 (new RestSplittableCheckoutErrorTransfer())
