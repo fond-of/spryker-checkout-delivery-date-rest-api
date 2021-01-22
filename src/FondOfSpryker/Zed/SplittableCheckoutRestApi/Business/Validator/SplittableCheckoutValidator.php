@@ -57,7 +57,10 @@ class SplittableCheckoutValidator implements SplittableCheckoutValidatorInterfac
             $restSplittableCheckoutResponseTransfer
         );
 
-        return $restSplittableCheckoutResponseTransfer;
+        return $this->getRestSplittableCheckoutResponse(
+            $splittableCheckoutDataTransfer,
+            $restSplittableCheckoutResponseTransfer
+        );
     }
 
     /**
@@ -104,6 +107,32 @@ class SplittableCheckoutValidator implements SplittableCheckoutValidatorInterfac
         }
 
         return $restSplittableCheckoutResponseTransfer->setIsSuccess(false);
+    }
+
+
+    /**
+     * @param \Generated\Shared\Transfer\CheckoutDataTransfer $checkoutDataTransfer
+     * @param \Generated\Shared\Transfer\RestCheckoutResponseTransfer $restCheckoutResponseTransfer
+     *
+     * @return \Generated\Shared\Transfer\RestCheckoutResponseTransfer
+     */
+    protected function getRestSplittableCheckoutResponse(
+        SplittableCheckoutDataTransfer $splittableCheckoutDataTransfer,
+        RestSplittableCheckoutResponseTransfer $restSplittableCheckoutResponseTransfer
+    ): RestSplittableCheckoutResponseTransfer {
+        $restSplittableCheckoutResponseTransfer->setSplittableCheckoutData($splittableCheckoutDataTransfer);
+
+        if ($restSplittableCheckoutResponseTransfer->getIsSuccess() === true
+            || $restSplittableCheckoutResponseTransfer->getErrors()->count() === 0
+        ) {
+            return $restSplittableCheckoutResponseTransfer->setIsSuccess(true);
+        }
+
+        return $restSplittableCheckoutResponseTransfer
+            ->addError(
+                (new RestSplittableCheckoutErrorTransfer())
+                    ->setErrorIdentifier(SplittableCheckoutRestApiConfig::ERROR_IDENTIFIER_ORDER_NOT_PLACED)
+            );
     }
 
 

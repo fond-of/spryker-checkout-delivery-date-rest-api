@@ -21,6 +21,7 @@
         <property name="isSuccess" type="bool" />
         <property name="errors" type="RestSplittableCheckoutError[]" singular="error" />
         <property name="orderReferences" type="array" singular="orderReference" />
+        <property name="splittableCheckoutData" type="RestSplittableCheckoutData"/>
     </transfer>
 
     <transfer name="RestSplittableCheckoutData">
